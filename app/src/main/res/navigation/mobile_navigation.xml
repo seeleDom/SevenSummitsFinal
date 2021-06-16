@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/nav_home">
+
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.md.sevensummitsfinal.ui.home.HomeFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/nav_GPS"
+        android:name="com.md.sevensummitsfinal.GPSFragment"
+        android:label="GPS"
+        tools:layout="@layout/fragment_g_p_s" />
+
+    <fragment
+        android:id="@+id/nav_maps"
+        android:name="com.md.sevensummitsfinal.MapsFragment"
+        android:label="Maps"
+        tools:layout="@layout/fragment_maps" />
+
+    <fragment
+        android:id="@+id/nav_profil"
+        android:name="com.md.sevensummitsfinal.ProfilFragment"
+        android:label="Profil"
+        tools:layout="@layout/fragment_profil" />
+</navigation>

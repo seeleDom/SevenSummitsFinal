@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "826468792253",
+    "project_id": "sevensummitsfinal",
+    "storage_bucket": "sevensummitsfinal.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:826468792253:android:f2f5fe74560c536365c4d4",
+        "android_client_info": {
+          "package_name": "com.md.sevensummitsfinal"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "826468792253-fvapfngnauigu88svrol9gr1n65oglie.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-AYnjfsN4J497_kMzrjpQ5Hj67Lw3U-o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "826468792253-fvapfngnauigu88svrol9gr1n65oglie.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
