@@ -41,7 +41,7 @@ public class MenuActivity extends AppCompatActivity {
             }
         });
 
-        mAppBar = new AppBarConfiguration.Builder(R.id.nav_home, R.id.nav_gps, R.id.nav_maps, R.id.nav_profil)
+        mAppBar = new AppBarConfiguration.Builder(R.id.nav_home, R.id.nav_gps, R.id.nav_maps, R.id.nav_profil, R.id.nav_myActivities)
                 .setDrawerLayout(drawer)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);

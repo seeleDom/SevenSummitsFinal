@@ -22,6 +22,10 @@
             android:id="@+id/nav_maps"
             android:icon="@drawable/ic_baseline_map_24"
             android:title="@string/menu_maps" />
+        <item
+            android:id="@+id/nav_myActivities"
+            android:icon="@drawable/ic_baseline_directions_run_24"
+            android:title="Meine Aktivitäten" />
     </group>
     <group
         android:checkableBehavior="none"

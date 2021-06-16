@@ -28,4 +28,10 @@
         android:name="com.md.sevensummitsfinal.ProfilFragment"
         android:label="Profil"
         tools:layout="@layout/fragment_profil" />
+
+    <fragment
+        android:id="@+id/nav_myActivities"
+        android:name="com.md.sevensummitsfinal.MeineAktivitaeten"
+        android:label="Meine Aktivitäten"
+        tools:layout="@layout/fragment_meine_aktivitaeten" />
 </navigation>
