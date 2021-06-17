@@ -12,7 +12,7 @@
     <string name="menu_maps">Maps</string>
     <string name="menu_profil">Profil</string>
     <string name="menu_logout">LogOut</string>
-    <string name="menu_myActivities"/>
+    <string name="menu_myActivities" />
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

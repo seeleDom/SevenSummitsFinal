@@ -31,7 +31,7 @@
 
     <fragment
         android:id="@+id/nav_myActivities"
-        android:name="com.md.sevensummitsfinal.MeineAktivitaeten"
+        android:name="com.md.sevensummitsfinal.MeineActivitaeten"
         android:label="Meine Aktivitäten"
-        tools:layout="@layout/fragment_meine_aktivitaeten" />
+        tools:layout="@layout/fragment_meine_activitaeten" />
 </navigation>
