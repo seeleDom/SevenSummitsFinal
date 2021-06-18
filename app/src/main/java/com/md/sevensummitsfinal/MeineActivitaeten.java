@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -22,6 +23,8 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -52,6 +55,10 @@ public class MeineActivitaeten extends Fragment {
     private RecyclerView rv;
     private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager llm;
+    String downloadImage;
+    FirebaseStorage storage;
+    StorageReference stRef;
+    Byte image;
 
     public MeineActivitaeten() {
         // Required empty public constructor
@@ -91,6 +98,8 @@ public class MeineActivitaeten extends Fragment {
         View view = inflater.inflate(R.layout.fragment_meine_activitaeten, container, false);
         db = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance();
+        storage = FirebaseStorage.getInstance();
+        stRef = storage.getReference();
         userID = currentUser.getUid();
         rv = view.findViewById(R.id.recyclerView);
         //rv.setHasFixedSize(true);
@@ -110,6 +119,7 @@ public class MeineActivitaeten extends Fragment {
 
     public void getActivities(){
         userID = currentUser.getCurrentUser().getUid();
+        downloadImage = null;
         ArrayList<exampleActivity> myactivities = new ArrayList<exampleActivity>();
         db.collection("activities")
                 .get()
@@ -120,6 +130,17 @@ public class MeineActivitaeten extends Fragment {
                             if(doc.getString("userID").equals(userID)){
                                 String titel = doc.getString("Titel");
                                 String beschreibung = doc.getString("Beschreibung");
+                                if(doc.getString("ImageURL") != null){
+                                    downloadImage = doc.getString("ImageURL");
+                                    StorageReference imRef = storage.getReferenceFromUrl(downloadImage);
+                                    final long ONE_MEGABYTE = 1024 * 1024;
+                                    imRef.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                                        @Override
+                                        public void onSuccess(byte[] bytes) {
+
+                                        }
+                                    });
+                                }
                                 myactivities.add(new exampleActivity(titel, beschreibung, R.drawable.ic_baseline_home_24));
                             }
                         }
