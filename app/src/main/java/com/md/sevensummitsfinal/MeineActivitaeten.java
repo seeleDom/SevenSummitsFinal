@@ -130,18 +130,14 @@ public class MeineActivitaeten extends Fragment {
                             if(doc.getString("userID").equals(userID)){
                                 String titel = doc.getString("Titel");
                                 String beschreibung = doc.getString("Beschreibung");
-                                if(doc.getString("ImageURL") != null){
-                                    downloadImage = doc.getString("ImageURL");
-                                    StorageReference imRef = storage.getReferenceFromUrl(downloadImage);
-                                    final long ONE_MEGABYTE = 1024 * 1024;
-                                    imRef.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
-                                        @Override
-                                        public void onSuccess(byte[] bytes) {
+                                if(doc.getString("ImageUrl") != null){
+                                    downloadImage = doc.getString("ImageUrl");
 
-                                        }
-                                    });
+                                } else {
+                                    downloadImage = "test";
                                 }
-                                myactivities.add(new exampleActivity(titel, beschreibung, R.drawable.ic_baseline_home_24));
+                                Log.d(TAG, "DownloadURL:" + downloadImage);
+                                myactivities.add(new exampleActivity(titel, beschreibung, downloadImage));
                             }
                         }
                         Log.d(TAG, "Array: " + myactivities);

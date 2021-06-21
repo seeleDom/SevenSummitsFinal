@@ -1,18 +1,22 @@
 package com.md.sevensummitsfinal;
 
+import android.graphics.drawable.Drawable;
+
+import com.squareup.picasso.Picasso;
+
 public class exampleActivity {
     private String titel;
     private String beschreibung;
-    private int image;
+    private String image;
 
-    public exampleActivity(String titel, String beschreibung, int photo){
+    public exampleActivity(String titel, String beschreibung, String photo){
         this.titel = titel;
         this.beschreibung = beschreibung;
-        this.image = image;
+        this.image = photo;
 
     }
 
-    public int getImage() {
+    public String getImage() {
         return image;
     }
 

@@ -9,6 +9,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.squareup.picasso.Picasso;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -45,7 +47,7 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.CardViewHolder
     @Override
     public void onBindViewHolder(@NonNull @NotNull CardViewHolder holder, int position) {
         exampleActivity currentItem = mActivities.get(position);
-        holder.mImage.setImageResource(currentItem.getImage());
+        Picasso.get().load(currentItem.getImage()).into(holder.mImage);
         holder.text1.setText(currentItem.getTitel());
         holder.text2.setText(currentItem.getBeschreibung());
     }
