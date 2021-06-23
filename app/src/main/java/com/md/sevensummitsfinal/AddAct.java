@@ -53,6 +53,8 @@ public class AddAct extends AppCompatActivity {
     DocumentReference docRef;
     String upload;
     Uri image;
+    StorageReference fileRef;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,7 +92,9 @@ public class AddAct extends AppCompatActivity {
                 String rTitel = titel.getText().toString().trim();
                 String rBeschreibung = beschreibung.getText().toString().trim();
                 String uID = currentUser.getUid();
-                StorageReference fileRef = null;
+                Map<String, Object> myAct = new HashMap<>();
+
+                fileRef = null;
                 String name = null;
 
                 if(image != null){
@@ -100,9 +104,35 @@ public class AddAct extends AppCompatActivity {
                             .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                                 @Override
                                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                    Toast.makeText(AddAct.this, "Upload succesfull", Toast.LENGTH_SHORT).show();
-                                    upload = taskSnapshot.getMetadata().getReference().getDownloadUrl().toString();
-                                    Log.d(TAG, "UploadURL: " + upload);
+                                    fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                        @Override
+                                        public void onSuccess(Uri uri) {
+                                            upload = uri.toString();
+                                            myAct.put("Titel", rTitel);
+                                            myAct.put("Beschreibung", rBeschreibung);
+                                            myAct.put("userID", uID);
+                                            myAct.put("ImageUrl", upload);
+
+                                            Log.d(TAG, myAct.toString());
+                                            db.collection("activities")
+                                                    .add(myAct)
+                                                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                                        @Override
+                                                        public void onSuccess(DocumentReference documentReference) {
+                                                            Toast.makeText(AddAct.this, "Aktivität erfolgreich hinzugefügt", Toast.LENGTH_SHORT).show();
+                                                            startActivity(new Intent(AddAct.this, MenuActivity.class));
+                                                        }
+                                                    })
+                                                    .addOnFailureListener(new OnFailureListener() {
+                                                        @Override
+                                                        public void onFailure(@NonNull @NotNull Exception e) {
+                                                            Toast.makeText(AddAct.this, "Aktivität konnte nicht erfolgreich hinzugefügt werden: " + e.toString(), Toast.LENGTH_SHORT).show();
+                                                            startActivity(new Intent(AddAct.this, MenuActivity.class));
+                                                        }
+                                                    });
+                                            Log.d(TAG, "UploadUrl: " + upload);
+                                        }
+                                    });
                                 }
                             })
                             .addOnFailureListener(new OnFailureListener() {
@@ -114,28 +144,9 @@ public class AddAct extends AppCompatActivity {
                 } else {
                     Toast.makeText(AddAct.this, "No file selected", Toast.LENGTH_SHORT).show();
                 }
-                Map<String, Object> myAct = new HashMap<>();
-                myAct.put("Titel", rTitel);
-                myAct.put("Beschreibung", rBeschreibung);
-                myAct.put("userID", uID);
-                myAct.put("ImageUrl", name);
+                Log.d(TAG, "upload: " + upload);
 
-                db.collection("activities")
-                        .add(myAct)
-                        .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                            @Override
-                            public void onSuccess(DocumentReference documentReference) {
-                                Toast.makeText(AddAct.this, "Aktivität erfolgreich hinzugefügt", Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(AddAct.this, MenuActivity.class));
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull @NotNull Exception e) {
-                                Toast.makeText(AddAct.this, "Aktivität konnte nicht erfolgreich hinzugefügt werden: " + e.toString(), Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(AddAct.this, MenuActivity.class));
-                            }
-                        });
+
 
             }
         });

@@ -8,24 +8,19 @@
         android:id="@+id/menu_top">
         <item
             android:id="@+id/nav_home"
-            android:icon="@drawable/ic_baseline_home_24"
-            android:title="@string/menu_home" />
-        <item
-            android:id="@+id/nav_profil"
-            android:icon="@drawable/ic_baseline_person_24"
-            android:title="@string/menu_profil" />
-        <item
-            android:id="@+id/nav_gps"
-            android:icon="@drawable/ic_baseline_explore_24"
-            android:title="@string/menu_gps" />
-        <item
-            android:id="@+id/nav_maps"
-            android:icon="@drawable/ic_baseline_map_24"
-            android:title="@string/menu_maps" />
+            android:icon="@drawable/ic_baseline_filter_hdr_24"
+            android:title="@string/menu_wettkampf" />
+
         <item
             android:id="@+id/nav_myActivities"
             android:icon="@drawable/ic_baseline_directions_run_24"
             android:title="Meine Aktivitäten" />
+
+
+        <item
+            android:id="@+id/nav_profil"
+            android:icon="@drawable/ic_baseline_person_24"
+            android:title="@string/menu_profil" />
     </group>
     <group
         android:checkableBehavior="none"
