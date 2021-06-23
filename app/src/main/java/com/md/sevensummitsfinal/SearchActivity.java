@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -100,8 +102,12 @@ public class SearchActivity extends Fragment {
                                         Log.d(TAG, document.getId() + " => " + document.getData());
                                         titelChallenge = document.getId();
                                         Log.d(TAG, titelChallenge);
-                                        Intent i = new Intent(SearchActivity.this.getActivity(), MapsWettkampfActivity.class);
-                                        startActivity(i);
+                                        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                                        MapsWettkampfActivity MWA = new MapsWettkampfActivity();
+                                        FragmentTransaction transaction = fragmentManager.beginTransaction();
+                                        transaction.replace(R.id.Nav_host_container, MWA);
+                                        transaction.addToBackStack(null);
+                                        transaction.commit();
 
                                         //Den Wettkampf dem User hinzufügen!!!!!!!!!!!!!!!!!!!
                                         //

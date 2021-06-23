@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -71,8 +73,12 @@ public class CreateChallengeActivity extends Fragment {
             @Override
             public void onClick(View v) {
                 newTitel = name.getText().toString().trim();
-                Intent i = new Intent(CreateChallengeActivity.this, MapsActivity2.class);
-                startActivity(i);
+                FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                MapsActivity2 ma2 = new MapsActivity2();
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
+                transaction.replace(R.id.Nav_host_container, ma2);
+                transaction.addToBackStack(null);
+                transaction.commit();
             }
         });
         return view;

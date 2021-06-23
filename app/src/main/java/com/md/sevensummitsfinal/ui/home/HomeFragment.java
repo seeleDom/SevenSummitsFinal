@@ -16,6 +16,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.md.sevensummitsfinal.CreateChallengeActivity;
 import com.md.sevensummitsfinal.R;
 import com.md.sevensummitsfinal.SearchActivity;
 import com.md.sevensummitsfinal.databinding.FragmentHomeBinding;
@@ -50,7 +51,7 @@ public class HomeFragment extends Fragment {
                 FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                 SearchActivity search = new SearchActivity();
                 FragmentTransaction transaction = fragmentManager.beginTransaction();
-                transaction.replace(R.id.nav_host_fragment, search);
+                transaction.replace(R.id.Nav_host_container, search);
                 transaction.addToBackStack(null);
                 transaction.commit();
 
@@ -60,8 +61,12 @@ public class HomeFragment extends Fragment {
         btn_Erstellen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Intent i = new Intent(MenuActivity.this, CreateChallengeActivity.class);
-                //startActivity(i);
+                FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                CreateChallengeActivity create = new CreateChallengeActivity();
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
+                transaction.replace(R.id.Nav_host_container, create);
+                transaction.addToBackStack(null);
+                transaction.commit();
             }
         });
         return root;

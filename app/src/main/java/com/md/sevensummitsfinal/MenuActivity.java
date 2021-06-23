@@ -23,6 +23,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.md.sevensummitsfinal.R;
 import com.md.sevensummitsfinal.ui.home.HomeFragment;
 
+import javax.annotation.CheckReturnValue;
+
 public class MenuActivity extends AppCompatActivity {
     private AppBarConfiguration mAppBar;
 
@@ -55,8 +57,35 @@ public class MenuActivity extends AppCompatActivity {
 
         FragmentManager manager = getSupportFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
-        transaction.add(R.id.nav_host_fragment_container, HomeFragment.class, null);
+        transaction.add(R.id.HomeFrag, HomeFragment.class, null);
         transaction.commit();
+
+        Button btnCreate = findViewById(R.id.btn_wettkampErstellen);
+        Button btnSearch = findViewById(R.id.btn_wettkampfBeitreten);
+
+        btnSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                SearchActivity search = new SearchActivity();
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
+                transaction.replace(R.id.Nav_host_container, search);
+                transaction.addToBackStack(null);
+                transaction.commit();
+            }
+        });
+
+        btnCreate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                CreateChallengeActivity create = new CreateChallengeActivity();
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
+                transaction.replace(R.id.Nav_host_container, create);
+                transaction.addToBackStack(null);
+                transaction.commit();
+            }
+        });
     }
 
 

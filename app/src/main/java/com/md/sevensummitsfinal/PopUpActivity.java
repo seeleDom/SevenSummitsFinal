@@ -66,7 +66,7 @@ public class PopUpActivity extends Fragment {
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_pop_up_activity, container, false);
-        final LatLng latlng = (LatLng) getIntent().getParcelableExtra("location");
+        //final LatLng latlng = (LatLng) getIntent().getParcelableExtra("location");
 
 
         final EditText title = view.findViewById(R.id.title);
@@ -76,15 +76,15 @@ public class PopUpActivity extends Fragment {
         boton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
-                MarkerOptions marker = new MarkerOptions().position(latlng);
+                //MarkerOptions marker = new MarkerOptions().position(latlng);
                 if (title.getText() != null) {
-                    marker.title(title.getText().toString());
+                  //  marker.title(title.getText().toString());
                 }
 
                 Intent resultIntent = new Intent();
-                resultIntent.putExtra("marker", marker);
-                setResult(Activity.RESULT_OK, resultIntent);
-                finish();
+                //resultIntent.putExtra("marker", marker);
+                //setResult(Activity.RESULT_OK, resultIntent);
+                //finish();
             }
         });
 
@@ -93,9 +93,9 @@ public class PopUpActivity extends Fragment {
         absenden.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
-                MarkerOptions marker = new MarkerOptions().position(latlng);
+                //MarkerOptions marker = new MarkerOptions().position(latlng);
                 if (title.getText() != null) {
-                    marker.title(title.getText().toString());
+                //    marker.title(title.getText().toString());
                 }
 
                 //Intent resultIntent = new Intent();
@@ -103,9 +103,9 @@ public class PopUpActivity extends Fragment {
                 //setResult(Activity.RESULT_OK, resultIntent);
 
                 // Unterschied zu oben ist es jetzt in die DB zu schreiben und eine andere Seite aufzurufen
-                MapsActivity2.saveinDB(marker);
+                //MapsActivity2.saveinDB(marker);
 
-                finish();
+                //finish();
 
             }
         });
