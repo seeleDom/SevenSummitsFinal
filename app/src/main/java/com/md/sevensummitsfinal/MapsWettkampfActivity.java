@@ -125,6 +125,7 @@ public class MapsWettkampfActivity extends Fragment {
                     String markerName = marker.getTitle();
                     Intent edit = new Intent(MapsWettkampfActivity.this.getActivity(), AddAct.class);
                     edit.putExtra("marker", markerName); // Gibt dem Entent Werte mit
+                    startActivity(edit);
                     return false;
                 }
             });

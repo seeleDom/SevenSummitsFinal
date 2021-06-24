@@ -53,9 +53,7 @@ public class MenuActivity extends AppCompatActivity {
     FirebaseFirestore db;
     FirebaseAuth currentuser;
     String ActiveChallenge;
-    ArrayList<String> berge;
-    ArrayList<String> user;
-    int countBerge;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +69,7 @@ public class MenuActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         currentuser = FirebaseAuth.getInstance();
 
-        checkUserWon();
+
 
         checkChallenge(currentuser);
         Menu menu = navigationView.getMenu();
@@ -156,62 +154,4 @@ public class MenuActivity extends AppCompatActivity {
             }
         });
     }
-
-    public void checkUserWon(){
-
-        String userID = FirebaseAuth.getInstance().getUid();
-        DocumentReference doc = db.collection("users").document(userID);
-        doc.addSnapshotListener(new EventListener<DocumentSnapshot>() {
-            @Override
-            public void onEvent(@Nullable @org.jetbrains.annotations.Nullable DocumentSnapshot value, @Nullable @org.jetbrains.annotations.Nullable FirebaseFirestoreException error) {
-                if(value.getString("ActiveChallenge") != null){
-                    ActiveChallenge = value.getString("ActiveChallenge");
-                } else {
-                    return;
-                }
-
-                db.collection("challenge").document(ActiveChallenge)
-                        .get()
-                        .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull @NotNull Task<DocumentSnapshot> task) {
-                                if(task.isSuccessful()){
-                                    DocumentSnapshot document = task.getResult();
-                                    berge = (ArrayList<String>) document.get("bergTitel");
-                                    int anzahlBerge = berge.size();
-                                    user = (ArrayList<String>) document.get("currentUsers");
-                                    int anzahlUser = user.size();
-
-                                    for(int i = 0; i < anzahlUser; i++){
-                                        int counter = i;
-                                        countBerge = 0;
-                                        db.collection("activities")
-                                                .get()
-                                                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                                                    @Override
-                                                    public void onComplete(@NonNull @NotNull Task<QuerySnapshot> task) {
-                                                        if(task.isSuccessful()){
-                                                            for(QueryDocumentSnapshot docA: task.getResult()){
-                                                                if(docA.getString("challenge").equals(ActiveChallenge)){
-                                                                    countBerge++;
-                                                                }
-                                                            }
-                                                            if(countBerge == anzahlBerge){
-                                                                String winner = user.get(counter);
-                                                                Map<String, Object> challengeWinenr = new HashMap<>();
-                                                                challengeWinenr.put("winner", winner);
-                                                            }
-                                                        }
-                                                    }
-                                                });
-                                    }
-
-                                }
-                            }
-                        });
-
-            }
-        });
-    }
-
 }

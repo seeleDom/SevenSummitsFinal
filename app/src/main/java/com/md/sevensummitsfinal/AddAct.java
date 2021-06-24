@@ -34,7 +34,11 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -64,6 +68,9 @@ public class AddAct extends AppCompatActivity {
     Spinner chooseBerg;
     String userID;
     String ActiveChallenge;
+    ArrayList<String> berge;
+    ArrayList<String> user;
+    int countBerge;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +84,6 @@ public class AddAct extends AppCompatActivity {
         fileName = findViewById(R.id.editTextFileName);
         stRef = FirebaseStorage.getInstance().getReference("uploads");
 
-
         currentUser = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
@@ -86,8 +92,6 @@ public class AddAct extends AppCompatActivity {
 
         beschreibung.setText("");
         beschreibung.setFocusableInTouchMode(true);
-        String android_id = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
-
         chooseBerg = findViewById(R.id.spinnerBerg);
         userID = currentUser.getUid();
         db.collection("users").document(userID)
@@ -106,7 +110,9 @@ public class AddAct extends AppCompatActivity {
                                             public void onComplete(@NonNull @NotNull Task<DocumentSnapshot> task) {
                                                 DocumentSnapshot docBerge = task.getResult();
                                                 List<String> spinnerArray = (ArrayList<String>) docBerge.get("bergTitel");
-                                                ArrayAdapter<String> adapter = new ArrayAdapter<String>(android_id, chooseBerg, spinnerArray);
+                                                ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, spinnerArray);
+                                                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                                                chooseBerg.setAdapter(adapter);
                                             }
                                         });
                             }
@@ -146,6 +152,7 @@ public class AddAct extends AppCompatActivity {
                                         @Override
                                         public void onSuccess(Uri uri) {
                                             upload = uri.toString();
+                                            myAct.put("challenge", ActiveChallenge);
                                             myAct.put("Titel", rTitel);
                                             myAct.put("Beschreibung", rBeschreibung);
                                             myAct.put("userID", uID);
@@ -159,6 +166,7 @@ public class AddAct extends AppCompatActivity {
                                                         public void onSuccess(DocumentReference documentReference) {
                                                             Toast.makeText(AddAct.this, "Aktivität erfolgreich hinzugefügt", Toast.LENGTH_SHORT).show();
                                                             startActivity(new Intent(AddAct.this, MenuActivity.class));
+                                                            checkUserWon();
                                                         }
                                                     })
                                                     .addOnFailureListener(new OnFailureListener() {
@@ -211,5 +219,75 @@ public class AddAct extends AppCompatActivity {
         ContentResolver cr = getContentResolver();
         MimeTypeMap mime = MimeTypeMap.getSingleton();
         return mime.getExtensionFromMimeType(cr.getType(uri));
+    }
+
+    public void checkUserWon(){
+
+        String userID = FirebaseAuth.getInstance().getUid();
+        DocumentReference doc = db.collection("users").document(userID);
+        doc.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable @org.jetbrains.annotations.Nullable DocumentSnapshot value, @Nullable @org.jetbrains.annotations.Nullable FirebaseFirestoreException error) {
+                if(value.getString("ActiveChallenge") != null){
+                    ActiveChallenge = value.getString("ActiveChallenge");
+                } else {
+                    return;
+                }
+
+                Log.d(TAG, "ActiveChallenge: " + ActiveChallenge);
+
+                db.collection("challenge").document(ActiveChallenge)
+                        .get()
+                        .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull @NotNull Task<DocumentSnapshot> task) {
+                                if(task.isSuccessful()){
+                                    DocumentSnapshot document = task.getResult();
+                                    berge = (ArrayList<String>) document.get("bergTitel");
+                                    int anzahlBerge = berge.size();
+                                    Log.d(TAG, "Anzahl Berge: " + anzahlBerge);
+                                    user = (ArrayList<String>) document.get("currentUsers");
+                                    int anzahlUser = user.size();
+                                    Log.d(TAG, "Anzahl User: " + anzahlUser);
+
+                                    for(int i = 0; i < anzahlUser; i++){
+                                        int counter = i;
+                                        countBerge = 0;
+                                        db.collection("activities")
+                                                .get()
+                                                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull @NotNull Task<QuerySnapshot> task) {
+                                                        if(task.isSuccessful()){
+                                                            for(QueryDocumentSnapshot docA: task.getResult()){
+                                                                if(docA.getString("challenge").equals(ActiveChallenge)){
+                                                                    countBerge++;
+                                                                }
+                                                            }
+                                                            Log.d(TAG, "CountBerge: " + countBerge);
+                                                            if(countBerge == anzahlBerge){
+                                                                String winner = user.get(counter);
+                                                                Map<String, Object> challengeWinner = new HashMap<>();
+                                                                challengeWinner.put("winner", winner);
+                                                                db.collection("challenge").document(ActiveChallenge)
+                                                                        .update(challengeWinner)
+                                                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                            @Override
+                                                                            public void onComplete(@NonNull @NotNull Task<Void> task) {
+                                                                                Log.d(TAG, "Gewonnen!");
+                                                                            }
+                                                                        });
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                    }
+
+                                }
+                            }
+                        });
+
+            }
+        });
     }
 }

@@ -71,9 +71,9 @@ public class MapsActivity2 extends Fragment {
             mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                 @Override
                 public void onMapClick(final LatLng latLng) {
-                    //Intent edit = new Intent(MapsActivity2.this, PopUpActivity.class);
-                    //edit.putExtra("location", latLng); // Gibt dem Entent Werte mit
-                    //MapsActivity2.this.startActivityForResult(edit, EDIT_REQUEST);
+                    Intent edit = new Intent(getActivity(), PopUpActivity.class);
+                    edit.putExtra("location", latLng); // Gibt dem Entent Werte mit
+                    MapsActivity2.this.startActivityForResult(edit, EDIT_REQUEST);
                 }
             });
         }
