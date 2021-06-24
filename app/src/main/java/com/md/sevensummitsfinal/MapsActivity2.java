@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -21,6 +22,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.md.sevensummitsfinal.databinding.ActivityMapsBinding;
@@ -35,6 +38,7 @@ public class MapsActivity2 extends Fragment {
     // Diese Klasse ist für die Erstellung eines Wettkampfes verantwortlich
     private static final String TAG = "MainActivity2";
     private static FirebaseFirestore db= FirebaseFirestore.getInstance();
+    String uID;
     private static String titelWettkampf = "ersterWettkampf";
     private static GoogleMap mMap;
     private ActivityMapsBinding binding;
@@ -114,13 +118,14 @@ public class MapsActivity2 extends Fragment {
 
     }
 
-    public static void saveinDB(MarkerOptions marker){
+    public void saveinDB(MarkerOptions marker){
         // In Firebase speichern
         // erst nach dem letzten speichern aufrufen
 
         MarkerOptions markerOptions = marker;
         mMap.addMarker(markerOptions);
         GeoPoint geo = new GeoPoint(markerOptions.getPosition().latitude,markerOptions.getPosition().longitude);
+        uID = FirebaseAuth.getInstance().getUid();
 
         bergTitel.add(markerOptions.getTitle());
         berge.add(geo);
@@ -133,6 +138,7 @@ public class MapsActivity2 extends Fragment {
         mark.put("bergeCheck",bergeCheck);
         String gesetzterTitel = CreateChallengeActivity.getNewTitel();
         mark.put("titel" , gesetzterTitel);
+        mark.put("currentUsers", uID);
 
         db.collection("challenge")
                 .document()
@@ -146,13 +152,16 @@ public class MapsActivity2 extends Fragment {
                         bergeCheck.clear();
                         SearchActivity.setTitelChallenge(gesetzterTitel); // Ide Dokument ID festlegen
 
-                        // Dem User den Wettkampf hinzufügen!!!!!!!!!!!!!
-                        //
-                        //
-                        //
-                        //
-                        //
-                        //
+                        DocumentReference ref = db.collection("users").document(uID);
+                        Map<String, Object> userChallenge = new HashMap<>();
+                        userChallenge.put("ActiveChallenge", gesetzterTitel);
+
+                        ref.update(userChallenge).addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void unused) {
+                                Toast.makeText(getContext(), "Erfolgreich dem Wettkampf beigetreten!", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {

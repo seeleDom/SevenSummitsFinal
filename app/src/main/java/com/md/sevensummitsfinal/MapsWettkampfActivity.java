@@ -20,11 +20,19 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -32,13 +40,15 @@ public class MapsWettkampfActivity extends Fragment {
 
     private GoogleMap mMap;
     private static final String TAG = "MainActivity2";
-    private static FirebaseFirestore db= FirebaseFirestore.getInstance();
+    private static FirebaseFirestore db;
 
     //SearchActivity.getTitelChallenge();
 
     private static List<GeoPoint> berg; // Für das Speichern in der DB
     private static List<String> titel; // Für das Speichern in der DB
     private static List<Boolean> geschafft; // Für das Speichern in der DB
+    String uPath;
+    String path;
 
 
     private OnMapReadyCallback callback = new OnMapReadyCallback() {
@@ -55,7 +65,14 @@ public class MapsWettkampfActivity extends Fragment {
         @Override
         public void onMapReady(GoogleMap googleMap) {
             mMap = googleMap;
-            String path = SearchActivity.getTitelChallenge();
+            String pathSearch = SearchActivity.getTitelChallenge();
+            if(uPath != null){
+                path = uPath;
+            } else {
+                path = pathSearch;
+            }
+
+
             DocumentReference docRef = db.collection("challenge").document(path); //SearchActivity.getTitelChallenge() es funktioniert nur hard coded
             docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
@@ -119,6 +136,20 @@ public class MapsWettkampfActivity extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
+        db = FirebaseFirestore.getInstance();
+        FirebaseAuth currentUser = FirebaseAuth.getInstance();
+        String userID = currentUser.getUid();
+        Log.d(TAG, "User ID: " + userID);
+        DocumentReference doc = db.collection("users").document(userID);
+        doc.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable @org.jetbrains.annotations.Nullable DocumentSnapshot value, @Nullable @org.jetbrains.annotations.Nullable FirebaseFirestoreException error) {
+                uPath = value.getString("ActiveChallenge");
+                Log.d(TAG, "ActiveChallenge" + uPath);
+
+            }
+        });
         return inflater.inflate(R.layout.fragment_maps_wettkampf_activity, container, false);
     }
 

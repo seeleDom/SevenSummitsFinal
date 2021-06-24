@@ -14,12 +14,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -38,6 +46,8 @@ public class SearchActivity extends Fragment {
     private static String titelChallenge; // Für das Speichern in der DB
     public static final String TAG = "SearchActivity";
     public static FirebaseFirestore db= FirebaseFirestore.getInstance();
+    FirebaseAuth currentUser;
+    String userID;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -72,7 +82,8 @@ public class SearchActivity extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-
+        currentUser = FirebaseAuth.getInstance();
+        userID = currentUser.getUid();
 
     }
 
@@ -109,8 +120,19 @@ public class SearchActivity extends Fragment {
                                         transaction.addToBackStack(null);
                                         transaction.commit();
 
-                                        //Den Wettkampf dem User hinzufügen!!!!!!!!!!!!!!!!!!!
-                                        //
+                                        DocumentReference ref = db.collection("users").document(userID);
+                                        Map<String, Object> userChallenge = new HashMap<>();
+                                        userChallenge.put("ActiveChallenge", titelChallenge);
+
+                                        ref.update(userChallenge).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void unused) {
+                                                Toast.makeText(getContext(), "Erfolgreich dem Wettkampf beigetreten!", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+
+                                        DocumentReference chRef = db.collection("challenge").document(a);
+                                        chRef.update("currentUsers", FieldValue.arrayUnion(userID));
                                         //
                                         //
                                         //

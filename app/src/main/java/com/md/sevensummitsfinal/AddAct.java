@@ -11,15 +11,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.webkit.MimeTypeMap;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.internal.Storage;
@@ -29,6 +33,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -37,7 +42,9 @@ import com.squareup.picasso.Picasso;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static android.content.ContentValues.TAG;
@@ -54,6 +61,9 @@ public class AddAct extends AppCompatActivity {
     String upload;
     Uri image;
     StorageReference fileRef;
+    Spinner chooseBerg;
+    String userID;
+    String ActiveChallenge;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,11 +80,39 @@ public class AddAct extends AppCompatActivity {
 
         currentUser = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+
         titel.setText("");
         titel.setFocusableInTouchMode(true);
 
         beschreibung.setText("");
         beschreibung.setFocusableInTouchMode(true);
+        String android_id = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
+
+        chooseBerg = findViewById(R.id.spinnerBerg);
+        userID = currentUser.getUid();
+        db.collection("users").document(userID)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull @NotNull Task<DocumentSnapshot> task) {
+                        if(task.isSuccessful()){
+                            DocumentSnapshot doc = task.getResult();
+                            if(doc.getString("ActiveChallenge") != null){
+                                ActiveChallenge = doc.getString("ActiveChallenge");
+                                db.collection("challenge").document(ActiveChallenge)
+                                        .get()
+                                        .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                            @Override
+                                            public void onComplete(@NonNull @NotNull Task<DocumentSnapshot> task) {
+                                                DocumentSnapshot docBerge = task.getResult();
+                                                List<String> spinnerArray = (ArrayList<String>) docBerge.get("bergTitel");
+                                                ArrayAdapter<String> adapter = new ArrayAdapter<String>(android_id, chooseBerg, spinnerArray);
+                                            }
+                                        });
+                            }
+                        }
+                    }
+                });
 
 
 
