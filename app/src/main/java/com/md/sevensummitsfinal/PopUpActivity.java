@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +27,16 @@ public class PopUpActivity extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+
+    private static LatLng position;
+
+    public static LatLng getPosition() {
+        return position;
+    }
+
+    public static void setPosition(LatLng position) {
+        PopUpActivity.position = position;
+    }
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -76,15 +88,19 @@ public class PopUpActivity extends Fragment {
         boton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
-                //MarkerOptions marker = new MarkerOptions().position(latlng);
+                MarkerOptions marker = new MarkerOptions().position(position);
                 if (title.getText() != null) {
-                  //  marker.title(title.getText().toString());
+                    marker.title(title.getText().toString());
                 }
+                MapsActivity2.popUpResult(marker);
 
-                Intent resultIntent = new Intent();
-                //resultIntent.putExtra("marker", marker);
-                //setResult(Activity.RESULT_OK, resultIntent);
-                //finish();
+                FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                MapsActivity2 MWA = new MapsActivity2();
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
+                transaction.replace(R.id.Nav_host_container, MWA);
+                transaction.addToBackStack(null);
+                transaction.commit();
+
             }
         });
 
@@ -93,9 +109,9 @@ public class PopUpActivity extends Fragment {
         absenden.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
-                //MarkerOptions marker = new MarkerOptions().position(latlng);
+                MarkerOptions marker = new MarkerOptions().position(position);
                 if (title.getText() != null) {
-                //    marker.title(title.getText().toString());
+                    marker.title(title.getText().toString());
                 }
 
                 //Intent resultIntent = new Intent();
@@ -103,7 +119,7 @@ public class PopUpActivity extends Fragment {
                 //setResult(Activity.RESULT_OK, resultIntent);
 
                 // Unterschied zu oben ist es jetzt in die DB zu schreiben und eine andere Seite aufzurufen
-                //MapsActivity2.saveinDB(marker);
+                MapsActivity2.saveinDB(marker);
 
                 //finish();
 

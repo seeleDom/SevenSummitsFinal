@@ -72,6 +72,7 @@ public class MenuActivity extends AppCompatActivity {
 
 
         checkChallenge(currentuser);
+
         Menu menu = navigationView.getMenu();
         MenuItem menuItem = menu.findItem(R.id.nav_logout);
 
@@ -83,7 +84,7 @@ public class MenuActivity extends AppCompatActivity {
             }
         });
 
-        mAppBar = new AppBarConfiguration.Builder(R.id.nav_home, R.id.nav_profil, R.id.nav_myActivities)
+        mAppBar = new AppBarConfiguration.Builder(R.id.nav_home, R.id.nav_profil, R.id.nav_myActivities, R.id.nav_Wettkampf)
                 .setDrawerLayout(drawer)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
@@ -144,14 +145,49 @@ public class MenuActivity extends AppCompatActivity {
             public void onEvent(@Nullable @org.jetbrains.annotations.Nullable DocumentSnapshot value, @Nullable @org.jetbrains.annotations.Nullable FirebaseFirestoreException error) {
                 if(value.getString("ActiveChallenge") != null){
                     ActiveChallenge = value.getString("ActiveChallenge");
-                    FragmentManager fragmentManager = getSupportFragmentManager();
-                    MapsWettkampfActivity create = new MapsWettkampfActivity();
-                    FragmentTransaction transaction = fragmentManager.beginTransaction();
-                    transaction.replace(R.id.Nav_host_container, create);
-                    transaction.addToBackStack(null);
-                    transaction.commit();
+                    checkWinnerStart();
+
                 }
             }
         });
+    }
+
+    public void checkWinnerStart(){
+        Log.d(TAG, "checkWinnerStart ausgeführt");
+        if(ActiveChallenge == null || ActiveChallenge.equals("")){
+            return;
+        } else {
+            db.collection("challenge").document(ActiveChallenge)
+                    .get()
+                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull @NotNull Task<DocumentSnapshot> task) {
+                            DocumentSnapshot res = task.getResult();
+                            Log.d(TAG, "Gewinner: " + res.getString("winner"));
+                            if(res.getString("winner")!= null){
+                                winnerDialog dialog = new winnerDialog();
+                                dialog.show(getSupportFragmentManager(), "New Dialog");
+                                Map<String, Object> resetActive = new HashMap<>();
+                                resetActive.put("ActiveChallenge", "");
+                                db.collection("users").document(currentuser.getUid())
+                                        .update(resetActive)
+                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull @NotNull Task<Void> task) {
+                                                startActivity(new Intent(getApplicationContext(), MenuActivity.class));
+
+                                            }
+                                        });
+                            } else {
+                                FragmentManager fragmentManager = getSupportFragmentManager();
+                                MapsWettkampfActivity create = new MapsWettkampfActivity();
+                                FragmentTransaction transaction = fragmentManager.beginTransaction();
+                                transaction.replace(R.id.Nav_host_container, create);
+                                transaction.addToBackStack(null);
+                                transaction.commit();
+                            }
+                        }
+                    });
+        }
     }
 }

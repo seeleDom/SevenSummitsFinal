@@ -3,6 +3,8 @@ package com.md.sevensummitsfinal;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -20,13 +22,19 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.md.sevensummitsfinal.databinding.ActivityMapsBinding;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,7 +46,7 @@ public class MapsActivity2 extends Fragment {
     // Diese Klasse ist für die Erstellung eines Wettkampfes verantwortlich
     private static final String TAG = "MainActivity2";
     private static FirebaseFirestore db= FirebaseFirestore.getInstance();
-    String uID;
+    private static String uID;
     private static String titelWettkampf = "ersterWettkampf";
     private static GoogleMap mMap;
     private ActivityMapsBinding binding;
@@ -67,37 +75,32 @@ public class MapsActivity2 extends Fragment {
 
             LatLng placeLocation = new LatLng(49,8);
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(placeLocation, 5.0f));
-
+            int i = 0;
+            if(bergTitel!=null){
+                while (i<bergTitel.size()){
+                    MarkerOptions gesetzt = new MarkerOptions();
+                    gesetzt.title(bergTitel.get(i));
+                    LatLng aktuell = new LatLng(berge.get(i).getLatitude(),berge.get(i).getLongitude());
+                    gesetzt.position(aktuell);
+                    mMap.addMarker(gesetzt);
+                    i++;
+                }
+            }
             mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                 @Override
                 public void onMapClick(final LatLng latLng) {
-                    Intent edit = new Intent(getActivity(), PopUpActivity.class);
-                    edit.putExtra("location", latLng); // Gibt dem Entent Werte mit
-                    MapsActivity2.this.startActivityForResult(edit, EDIT_REQUEST);
+                    PopUpActivity.setPosition(latLng);
+                    FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                    PopUpActivity MWA = new PopUpActivity();
+                    FragmentTransaction transaction = fragmentManager.beginTransaction();
+                    transaction.replace(R.id.Nav_host_container, MWA);
+                    transaction.addToBackStack(null);
+                    transaction.commit();
                 }
             });
         }
     };
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch(requestCode) {
-            case (EDIT_REQUEST) : {
-                if (resultCode == Activity.RESULT_OK) {
-                    MarkerOptions markerOptions = data.getParcelableExtra("marker");
-                    mMap.addMarker(markerOptions);
-                    GeoPoint geo = new GeoPoint(markerOptions.getPosition().latitude,markerOptions.getPosition().longitude);
-
-                    bergTitel.add(markerOptions.getTitle());
-                    berge.add(geo);
-                    bergeCheck.add(false);
-                    // Von Firestore lesen
-                }
-                break;
-            }
-        }
-    }
 
     @Nullable
     @Override
@@ -118,7 +121,7 @@ public class MapsActivity2 extends Fragment {
 
     }
 
-    public void saveinDB(MarkerOptions marker){
+    public static void saveinDB(MarkerOptions marker){
         // In Firebase speichern
         // erst nach dem letzten speichern aufrufen
 
@@ -126,6 +129,8 @@ public class MapsActivity2 extends Fragment {
         mMap.addMarker(markerOptions);
         GeoPoint geo = new GeoPoint(markerOptions.getPosition().latitude,markerOptions.getPosition().longitude);
         uID = FirebaseAuth.getInstance().getUid();
+        List<String> currentUsers = new ArrayList<String>();
+        currentUsers.add(uID);
 
         bergTitel.add(markerOptions.getTitle());
         berge.add(geo);
@@ -138,7 +143,7 @@ public class MapsActivity2 extends Fragment {
         mark.put("bergeCheck",bergeCheck);
         String gesetzterTitel = CreateChallengeActivity.getNewTitel();
         mark.put("titel" , gesetzterTitel);
-        mark.put("currentUsers", uID);
+        mark.put("currentUsers", currentUsers);
 
         db.collection("challenge")
                 .document()
@@ -146,22 +151,42 @@ public class MapsActivity2 extends Fragment {
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        Log.d(TAG, "Erfolg");
+
                         berge.clear(); // Listen leeren
                         bergTitel.clear();
                         bergeCheck.clear();
                         SearchActivity.setTitelChallenge(gesetzterTitel); // Ide Dokument ID festlegen
+                        String docID = SearchActivity.getTitelChallenge();
 
-                        DocumentReference ref = db.collection("users").document(uID);
-                        Map<String, Object> userChallenge = new HashMap<>();
-                        userChallenge.put("ActiveChallenge", gesetzterTitel);
+                        db.collection("challenge")
+                                .get()
+                                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                    @Override
+                                    public void onComplete(@NonNull @NotNull Task<QuerySnapshot> task) {
+                                        for(QueryDocumentSnapshot doc: task.getResult()){
+                                            Log.d(TAG, "Titel" + doc.getString("titel"));
+                                            if(doc.getString("titel").equals(gesetzterTitel)){
+                                                Map<String, Object> userChallenge = new HashMap<>();
+                                                String titel = doc.getId();
+                                                userChallenge.put("ActiveChallenge", titel);
+                                                DocumentReference ref = db.collection("users").document(uID);
+                                                ref.update(userChallenge).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                    @Override
+                                                    public void onSuccess(Void unused) {
 
-                        ref.update(userChallenge).addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void unused) {
-                                Toast.makeText(getContext(), "Erfolgreich dem Wettkampf beigetreten!", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull @NotNull Exception e) {
+                                        Log.d(TAG, "Fehler " + e.toString());
+                                    }
+                                });
+
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -171,5 +196,15 @@ public class MapsActivity2 extends Fragment {
                         //Toast.makeText(MapsActivity2.this, "Berg konnte nicht erfolgreich hinzugefügt werden" , Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    public static void popUpResult(MarkerOptions marker){
+        //MarkerOptions markerOptions = marker;
+        mMap.addMarker(marker);
+        GeoPoint geo = new GeoPoint(marker.getPosition().latitude,marker.getPosition().longitude);
+
+        bergTitel.add(marker.getTitle());
+        berge.add(geo);
+        bergeCheck.add(false);
     }
 }

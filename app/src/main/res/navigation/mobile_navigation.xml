@@ -17,6 +17,12 @@
         android:label="Meine Aktivitäten"
         tools:layout="@layout/fragment_meine_activitaeten" />
 
+    <fragment
+        android:id="@+id/nav_Wettkampf"
+        android:name="com.md.sevensummitsfinal.MapsWettkampfActivity"
+        android:label="Wettkampf"
+        tools:layout="@layout/fragment_maps_wettkampf_activity"/>
+
 
     <fragment
         android:id="@+id/nav_profil"

@@ -3,6 +3,10 @@ package com.md.sevensummitsfinal;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -49,6 +54,8 @@ public class MapsWettkampfActivity extends Fragment {
     private static List<Boolean> geschafft; // Für das Speichern in der DB
     String uPath;
     String path;
+    String winner;
+    NavController navController;
 
 
     private OnMapReadyCallback callback = new OnMapReadyCallback() {
@@ -68,33 +75,33 @@ public class MapsWettkampfActivity extends Fragment {
             String pathSearch = SearchActivity.getTitelChallenge();
             if(uPath != null){
                 path = uPath;
+
             } else {
                 path = pathSearch;
+
             }
 
-
+            Log.d(TAG, "Path: " + path);
             DocumentReference docRef = db.collection("challenge").document(path); //SearchActivity.getTitelChallenge() es funktioniert nur hard coded
             docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    berg = null;
-                    titel = null;
-                    geschafft = null;
+
                     if (task.isSuccessful()) {
                         DocumentSnapshot snap = task.getResult();
 
                         if (snap.exists()) {
-                            Log.d(TAG, "DocumentSnapshot data: " + snap.getData() + " und berge : " + snap.get("berge"));
-                            Log.d(TAG, "Titel: " + SearchActivity.getTitelChallenge() + snap.get("bergeCheck"));
+                            //Log.d(TAG, "DocumentSnapshot data: " + snap.getData() + " und berge : " + snap.get("berge"));
+                            //Log.d(TAG, "Titel: " + SearchActivity.getTitelChallenge() + snap.get("bergeCheck"));
 
                             berg = (List<GeoPoint>)snap.get("berge");
                             titel = (List<String>)snap.get("bergTitel");
                             geschafft = (List<Boolean>)snap.get("bergeCheck");
                         } else {
-                            Log.d(TAG, "Kein Dokument gefunden");
+                            //Log.d(TAG, "Kein Dokument gefunden");
                         }
                     } else {
-                        Log.d(TAG, "Fehlermeldung ", task.getException());
+                        //Log.d(TAG, "Fehlermeldung ", task.getException());
                     }
                 }
 
@@ -106,18 +113,18 @@ public class MapsWettkampfActivity extends Fragment {
                         LatLng m = new LatLng(berg.get(i).getLatitude(),berg.get(i).getLongitude());
                         Log.d(TAG, "Titel: " + geschafft.get(i));
                         if(geschafft.get(i)==true){ // Wenn der User den berg bereits bestiegen hat soll der Marker Grün sein
-                            Log.d(TAG, "Bin true");
                             mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(180)).position(m).title(titel.get(i)));
                         }
                         else{
                             mMap.addMarker(new MarkerOptions().position(m).title(titel.get(i)));
-                            Log.d(TAG, "Bin false");
                         }
                         i++;
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(m, 8.0f));
                     }
                 }
             });
+
+
 
             mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() { // Hier kann definiert werden was bei Click auf den marker ausgeführt werden soll
                 @Override
@@ -141,7 +148,6 @@ public class MapsWettkampfActivity extends Fragment {
         db = FirebaseFirestore.getInstance();
         FirebaseAuth currentUser = FirebaseAuth.getInstance();
         String userID = currentUser.getUid();
-        Log.d(TAG, "User ID: " + userID);
         DocumentReference doc = db.collection("users").document(userID);
         doc.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
@@ -162,6 +168,9 @@ public class MapsWettkampfActivity extends Fragment {
         if (mapFragment != null) {
             mapFragment.getMapAsync(callback);
         }
+
     }
+
+
 
 }
