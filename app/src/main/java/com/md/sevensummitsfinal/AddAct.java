@@ -7,14 +7,20 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
@@ -27,6 +33,10 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.internal.Storage;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -37,6 +47,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
@@ -73,6 +84,15 @@ public class AddAct extends AppCompatActivity {
     int countBerge;
     Boolean hasWon;
     String uID;
+    GeoPoint activeBerg;
+    ArrayList<GeoPoint> geoBerge;
+    //Die Google API für die Location Services. Der Hauptteil der App wird diese Klasse benutzen
+    FusedLocationProviderClient fusedLocationProviderClient;
+    private static final int PERMISSIONS_FINE_LOCATION = 99;
+    Location currentLocation;
+    boolean isClose;
+    String wait;
+    String resultCheck;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +106,7 @@ public class AddAct extends AppCompatActivity {
         fileName = findViewById(R.id.editTextFileName);
         stRef = FirebaseStorage.getInstance().getReference("uploads");
         hasWon = false;
-
+        Context context = getApplicationContext();
         currentUser = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
@@ -97,6 +117,7 @@ public class AddAct extends AppCompatActivity {
         beschreibung.setFocusableInTouchMode(true);
         chooseBerg = findViewById(R.id.spinnerBerg);
         userID = currentUser.getUid();
+        updateGPS();
         db.collection("users").document(uID)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -138,63 +159,75 @@ public class AddAct extends AppCompatActivity {
                 DocumentReference doc = db.collection("activities").document();
                 String rTitel = titel.getText().toString().trim();
                 String rBeschreibung = beschreibung.getText().toString().trim();
+                resultCheck = checkRadius();
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    public void run() {
+                        Log.d(TAG, "IsCloseCheck: " + isClose);
+                        if(isClose == false){
+                            Toast.makeText(context, "Sie sind leider zu weit entfernt von diesem Ort", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
 
-                Map<String, Object> myAct = new HashMap<>();
+                        Map<String, Object> myAct = new HashMap<>();
 
-                fileRef = null;
-                String name = null;
+                        fileRef = null;
+                        String name = null;
 
-                if(image != null){
-                    fileRef= stRef.child(System.currentTimeMillis() + "." + getFileExtension(image));
-                    name = fileRef.toString();
-                    fileRef.putFile(image)
-                            .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                                @Override
-                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                    fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        if(image != null){
+                            fileRef= stRef.child(System.currentTimeMillis() + "." + getFileExtension(image));
+                            name = fileRef.toString();
+                            fileRef.putFile(image)
+                                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                                         @Override
-                                        public void onSuccess(Uri uri) {
-                                            upload = uri.toString();
-                                            myAct.put("challenge", ActiveChallenge);
-                                            myAct.put("Titel", rTitel);
-                                            myAct.put("Beschreibung", rBeschreibung);
-                                            myAct.put("userID", uID);
-                                            myAct.put("ImageUrl", upload);
+                                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                            fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                                @Override
+                                                public void onSuccess(Uri uri) {
+                                                    upload = uri.toString();
+                                                    myAct.put("challenge", ActiveChallenge);
+                                                    myAct.put("Titel", rTitel);
+                                                    myAct.put("Beschreibung", rBeschreibung);
+                                                    myAct.put("userID", uID);
+                                                    myAct.put("ImageUrl", upload);
 
-                                            Log.d(TAG, myAct.toString());
-                                            db.collection("activities")
-                                                    .add(myAct)
-                                                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                                        @Override
-                                                        public void onSuccess(DocumentReference documentReference) {
-                                                            Toast.makeText(AddAct.this, "Aktivität erfolgreich hinzugefügt", Toast.LENGTH_SHORT).show();
-                                                            checkUserWon();
+                                                    Log.d(TAG, myAct.toString());
+                                                    db.collection("activities")
+                                                            .add(myAct)
+                                                            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                                                @Override
+                                                                public void onSuccess(DocumentReference documentReference) {
+                                                                    Toast.makeText(AddAct.this, "Aktivität erfolgreich hinzugefügt", Toast.LENGTH_SHORT).show();
+                                                                    checkUserWon();
 
 
-                                                        }
-                                                    })
-                                                    .addOnFailureListener(new OnFailureListener() {
-                                                        @Override
-                                                        public void onFailure(@NonNull @NotNull Exception e) {
-                                                            Toast.makeText(AddAct.this, "Aktivität konnte nicht erfolgreich hinzugefügt werden: " + e.toString(), Toast.LENGTH_SHORT).show();
-                                                            startActivity(new Intent(AddAct.this, MenuActivity.class));
-                                                        }
-                                                    });
-                                            //Log.d(TAG, "UploadUrl: " + upload);
+                                                                }
+                                                            })
+                                                            .addOnFailureListener(new OnFailureListener() {
+                                                                @Override
+                                                                public void onFailure(@NonNull @NotNull Exception e) {
+                                                                    Toast.makeText(AddAct.this, "Aktivität konnte nicht erfolgreich hinzugefügt werden: " + e.toString(), Toast.LENGTH_SHORT).show();
+                                                                    startActivity(new Intent(AddAct.this, MenuActivity.class));
+                                                                }
+                                                            });
+                                                    //Log.d(TAG, "UploadUrl: " + upload);
+                                                }
+                                            });
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull @NotNull Exception e) {
+                                            Toast.makeText(AddAct.this, "Fehler: " + e.toString(), Toast.LENGTH_SHORT).show();
                                         }
                                     });
-                                }
-                            })
-                            .addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull @NotNull Exception e) {
-                                    Toast.makeText(AddAct.this, "Fehler: " + e.toString(), Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                } else {
-                    Toast.makeText(AddAct.this, "No file selected", Toast.LENGTH_SHORT).show();
-                }
-                Log.d(TAG, "upload: " + upload);
+                        } else {
+                            Toast.makeText(AddAct.this, "No file selected", Toast.LENGTH_SHORT).show();
+                        }
+                        Log.d(TAG, "upload: " + upload);
+                    }
+                }, 2000);
+
 
 
 
@@ -305,5 +338,98 @@ public class AddAct extends AppCompatActivity {
         });
     }
 
+    private String checkRadius(){
+        Location targetLocation = new Location("");//provider name is unnecessary
+        String spinnerSelection = chooseBerg.getSelectedItem().toString();
+        db.collection("challenge").document(ActiveChallenge)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull @NotNull Task<DocumentSnapshot> task) {
+                      DocumentSnapshot doc = task.getResult();
+                        List<String> berge = new ArrayList<String>();
+                        berge = (ArrayList<String>) doc.get("bergTitel");
+                        geoBerge = (ArrayList<GeoPoint>) doc.get("berge");
+                        for(int i = 0; i < berge.size(); i++){
+                            Log.d(TAG, "Bin im If Siiiiiir");
+                            if(berge.get(i).equals(spinnerSelection)){
+                                 activeBerg = geoBerge.get(i);
+                                 Log.d(TAG, "GeoPunkt: " + activeBerg.toString());
+
+                                 break;
+                            }
+                        }
+
+
+
+                    }
+                }).addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                targetLocation.setLatitude(activeBerg.getLatitude());//your coords of course
+                targetLocation.setLongitude(activeBerg.getLongitude());
+                Log.d(TAG, "CuurentLoc: " + currentLocation);
+                float distance = currentLocation.distanceTo(targetLocation);
+                Log.d(TAG, "distance : " + distance);
+                if(distance>1000){
+
+                    isClose = false;
+
+                }
+                else {
+                    isClose = true;
+
+                }
+                Log.d(TAG, "isClose: " + isClose);
+
+            }
+        });
+
+        wait = "hallo";
+        return wait;
+    }
+
+    private void updateGPS(){
+        //Erst nach Erlaubnis des Users fragen
+        // Die aktuelle Location herausfinden
+        // Die UI updaten
+
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(AddAct.this);
+        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+            // Der User hat uns die Erlaubnis bereits gegeben
+            fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() { // Benötigt Code im Manifest
+                @Override
+                public void onSuccess(Location location) {
+                    // Wir haben die Ererlaubnis und bekommen die Werte der Location
+                    currentLocation= location;
+                    Log.d(TAG, "UpdateGPS Loc: " + currentLocation);
+                }
+            });
+        }
+        else{
+            // Die Erlaubnis wurde noch nicht gegeben
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                requestPermissions(new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_FINE_LOCATION);
+            }
+        }
+    }
+
+    // Überschreiben einer der aus der APPMainCompat übergebenen Methoden, die eigetnlcih für alles zuständig ist in der MainActivity
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        switch(requestCode){
+            case PERMISSIONS_FINE_LOCATION:
+                if (grantResults[0]== PackageManager.PERMISSION_GRANTED){
+                    updateGPS();
+                }
+                else{
+                    Toast.makeText(this,"Diese App benötigit Ihre Erlaubnis den Standort zu tracken",Toast.LENGTH_SHORT).show(); //Fehlermeldung ausgeben
+                    finish(); // Programm verlassen
+                }
+                break;
+        }
+    }
 
 }
