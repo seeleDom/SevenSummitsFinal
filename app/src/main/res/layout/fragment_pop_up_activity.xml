@@ -10,20 +10,24 @@
         android:hint="Title"
         android:id="@+id/title"/>
 
-    <Button android:layout_height="wrap_content"
-        android:layout_width="match_parent"
+    <Button
         android:id="@+id/save"
-        android:text="Save"/>
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Save"
+        android:textColor="#000000" />
 
     <TextView android:layout_height="wrap_content"
         android:layout_width="match_parent"
         android:id="@+id/textView2"
         android:text="Wenn alle Berge eingetragen wurden drücken Sie bitte Wettkampf speichern"/>
 
-    <Button android:layout_height="wrap_content"
-        android:layout_width="match_parent"
+    <Button
         android:id="@+id/button"
-        android:text="Wettkampf speichern"/>
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Wettkampf speichern"
+        android:textColor="#000000" />
 
     <EditText android:layout_height="wrap_content"
         android:layout_width="match_parent"
