@@ -12,7 +12,7 @@
             android:title="@string/menu_home" />
 
         <item
-            android:id="@+id/nav_Wettkampf"
+            android:id="@+id/nav_Karte"
             android:icon="@drawable/ic_baseline_departure_board_24"
             android:title="@string/menu_wettkampf"/>
 

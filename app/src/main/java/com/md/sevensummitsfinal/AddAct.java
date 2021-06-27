@@ -103,7 +103,6 @@ public class AddAct extends AppCompatActivity {
         foto = findViewById(R.id.imageViewAct);
         addAct = findViewById(R.id.btnAddAct);
         addFoto = findViewById(R.id.btnAddImage);
-        fileName = findViewById(R.id.editTextFileName);
         stRef = FirebaseStorage.getInstance().getReference("uploads");
         hasWon = false;
         Context context = getApplicationContext();

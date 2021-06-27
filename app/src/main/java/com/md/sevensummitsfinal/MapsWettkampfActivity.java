@@ -46,6 +46,10 @@ public class MapsWettkampfActivity extends Fragment {
     private GoogleMap mMap;
     private static final String TAG = "MainActivity2";
     private static FirebaseFirestore db;
+    private String mParam1;
+    private String mParam2;
+    private static final String ARG_PARAM1 = "param1";
+    private static final String ARG_PARAM2 = "param2";
 
     //SearchActivity.getTitelChallenge();
 
@@ -56,6 +60,15 @@ public class MapsWettkampfActivity extends Fragment {
     String path;
     String winner;
     NavController navController;
+
+    public static MapsWettkampfActivity newInstance(String param1, String param2) {
+        MapsWettkampfActivity fragment = new MapsWettkampfActivity();
+        Bundle args = new Bundle();
+        args.putString(ARG_PARAM1, param1);
+        args.putString(ARG_PARAM2, param2);
+        fragment.setArguments(args);
+        return fragment;
+    }
 
 
     private OnMapReadyCallback callback = new OnMapReadyCallback() {
@@ -144,7 +157,7 @@ public class MapsWettkampfActivity extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-
+        View view = inflater.inflate(R.layout.fragment_maps_wettkampf_activity, container, false);
         db = FirebaseFirestore.getInstance();
         FirebaseAuth currentUser = FirebaseAuth.getInstance();
         String userID = currentUser.getUid();
@@ -157,7 +170,7 @@ public class MapsWettkampfActivity extends Fragment {
 
             }
         });
-        return inflater.inflate(R.layout.fragment_maps_wettkampf_activity, container, false);
+        return view;
     }
 
     @Override

@@ -22,6 +22,7 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -53,6 +54,8 @@ public class MenuActivity extends AppCompatActivity {
     FirebaseFirestore db;
     FirebaseAuth currentuser;
     String ActiveChallenge;
+    String winner;
+    String winnerID;
 
 
     @Override
@@ -84,7 +87,7 @@ public class MenuActivity extends AppCompatActivity {
             }
         });
 
-        mAppBar = new AppBarConfiguration.Builder(R.id.nav_home, R.id.nav_profil, R.id.nav_myActivities, R.id.nav_Wettkampf)
+        mAppBar = new AppBarConfiguration.Builder(R.id.nav_home, R.id.nav_profil, R.id.nav_myActivities, R.id.nav_Karte)
                 .setDrawerLayout(drawer)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
@@ -165,19 +168,28 @@ public class MenuActivity extends AppCompatActivity {
                             DocumentSnapshot res = task.getResult();
                             Log.d(TAG, "Gewinner: " + res.getString("winner"));
                             if(res.getString("winner")!= null){
-                                winnerDialog dialog = new winnerDialog();
-                                dialog.show(getSupportFragmentManager(), "New Dialog");
-                                Map<String, Object> resetActive = new HashMap<>();
-                                resetActive.put("ActiveChallenge", "");
-                                db.collection("users").document(currentuser.getUid())
-                                        .update(resetActive)
-                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                            @Override
-                                            public void onComplete(@NonNull @NotNull Task<Void> task) {
-                                                startActivity(new Intent(getApplicationContext(), MenuActivity.class));
+                                winnerID = res.getString("winner");
+                                db.collection("users").document(winnerID)
+                                        .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                    @Override
+                                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                                        winner = documentSnapshot.getString("email");
+                                        winnerDialog dialog = new winnerDialog(winner);
+                                        dialog.show(getSupportFragmentManager(), "New Dialog");
+                                        Map<String, Object> resetActive = new HashMap<>();
+                                        resetActive.put("ActiveChallenge", "");
+                                        db.collection("users").document(currentuser.getUid())
+                                                .update(resetActive)
+                                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull @NotNull Task<Void> task) {
+                                                        startActivity(new Intent(getApplicationContext(), MenuActivity.class));
 
-                                            }
-                                        });
+                                                    }
+                                                });
+                                    }
+                                });
+
                             } else {
                                 FragmentManager fragmentManager = getSupportFragmentManager();
                                 MapsWettkampfActivity create = new MapsWettkampfActivity();
