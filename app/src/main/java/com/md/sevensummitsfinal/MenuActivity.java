@@ -142,6 +142,10 @@ public class MenuActivity extends AppCompatActivity {
 
     public void checkChallenge(FirebaseAuth user){
         String userID = user.getUid();
+        if(userID == null){
+            startActivity(new Intent(MenuActivity.this, Login.class));
+            return;
+        }
         DocumentReference doc = db.collection("users").document(userID);
         doc.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
